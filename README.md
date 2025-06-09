@@ -5,8 +5,7 @@ A Flutter application for practicing and learning the 9×9 multiplication table.
 ## Features
 
 * **Multiplication Table Display**: View the full 9×9 multiplication table in a clean, responsive grid.
-* **Test Mode**: Quiz yourself with random multiplication questions and track your progress.
-* **Challenge Mode**: Advance through progressive levels (关卡/Quests) to earn rewards.
+* **Quiz Mode**: Advance through progressive levels (关卡/Quests) to earn rewards.
 * **Audio Feedback**: Enable TTS audio for each multiplication fact (一一得一…／One times one is one…).
 * **Localization**: Switch seamlessly between Chinese (中文) and English (English) UI and audio.
 * **Settings**: Control language, enable/disable audio, and adjust volume.
