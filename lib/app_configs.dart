@@ -1,66 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'utils.dart';
+import 'utils.dart'; // For logger
 
 class AppConfigs extends ChangeNotifier {
+  String _language;
   bool _isAudioEnabled = true;
   double _audioVolume = 1.0;
-  String _language = 'Chinese';
 
+  String get language => _language;
   bool get isAudioEnabled => _isAudioEnabled;
   double get audioVolume => _audioVolume;
-  String get language => _language;
 
-  AppSettings() {
+  AppConfigs({String initialLanguage = 'Chinese'}) : _language = initialLanguage {
     _loadSettings();
-  }
-
-  void setAudioEnabled(bool enabled) async {
-    _isAudioEnabled = enabled;
-    notifyListeners();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isAudioEnabled', enabled);
-    } catch (e) {
-      logger.e('Failed to save audio enabled setting: $e');
-    }
-  }
-
-  void setAudioVolume(double volume) async {
-    _audioVolume = volume;
-    notifyListeners();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('audioVolume', volume);
-    } catch (e) {
-      logger.e('Failed to save audio volume setting: $e');
-    }
-  }
-
-  void setLanguage(String language) async {
-    _language = language;
-    notifyListeners();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('language', language);
-    } catch (e) {
-      logger.e('Failed to save language setting: $e');
-    }
   }
 
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString('language');
+      if (savedLanguage != null) {
+        _language = savedLanguage;
+      } // Else, keep _language from constructor (set by initialLanguage)
       _isAudioEnabled = prefs.getBool('isAudioEnabled') ?? true;
       _audioVolume = prefs.getDouble('audioVolume') ?? 1.0;
-      _language = prefs.getString('language') ?? 'Chinese';
       notifyListeners();
     } catch (e) {
       logger.e('Failed to load settings: $e');
-      _isAudioEnabled = true;
-      _audioVolume = 1.0;
-      _language = 'Chinese';
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('language', _language);
+      await prefs.setBool('isAudioEnabled', _isAudioEnabled);
+      await prefs.setDouble('audioVolume', _audioVolume);
+    } catch (e) {
+      logger.e('Failed to save settings: $e');
+    }
+  }
+
+  void setLanguage(String language) {
+    if (_language != language) {
+      _language = language;
       notifyListeners();
+      _saveSettings();
+    }
+  }
+
+  void setAudioEnabled(bool enabled) {
+    if (_isAudioEnabled != enabled) {
+      _isAudioEnabled = enabled;
+      notifyListeners();
+      _saveSettings();
+    }
+  }
+
+  void setAudioVolume(double volume) {
+    if ((_audioVolume - volume).abs() > 0.01) {
+      _audioVolume = volume.clamp(0.0, 1.0);
+      notifyListeners();
+      _saveSettings();
+    }
+  }
+
+  Future<void> resetRecords() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('currentLevel');
+      await prefs.remove('correctAnswersInLevel');
+      await prefs.remove('totalQuestionsInLevel');
+      await prefs.remove('hasMasterBadge');
+      await prefs.remove('history');
+      await prefs.remove('totalQuestions');
+      await prefs.remove('totalCorrect');
+      await prefs.remove('totalIncorrect');
+      notifyListeners();
+    } catch (e) {
+      logger.e('Failed to reset records: $e');
     }
   }
 }

@@ -16,8 +16,7 @@ A Flutter application for practicing and learning the 9×9 multiplication table.
 ## Screenshots
 
 ![Home Page](docs/screenshots/home.png)
-![Test Mode](docs/screenshots/test.png)
-![Quests Mode](docs/screenshots/quests.png)
+![Quiz Mode](docs/screenshots/quiz.png)
 ![Settings](docs/screenshots/settings.png)
 
 ## Getting Started
@@ -62,8 +61,7 @@ lib/
 ├── main.dart         # App entry point and navigation
 ├── app_configs.dart  # Provider-managed settings (language, audio)
 ├── home_page.dart    # Displays the 9×9 multiplication grid
-├── test_page.dart    # Random quiz mode
-├── quests_page.dart # Progressive level/quest mode
+├── quiz_page.dart # Progressive level/quiz mode
 ├── settings_page.dart # Language & audio settings
 └── utils.dart        # Helper functions (e.g., number-to-Chinese converter)
 ```
@@ -74,8 +72,8 @@ lib/
 * App strings (titles, labels) automatically switch between 中/EN.
 * Application name configured in Android manifest via resource strings:
 
-  * `res/values/strings.xml` → `Multiplication Table`
-  * `res/values-zh/strings.xml` → `九九乘法表`
+  * `res/values/strings.xml` → `9X9 Learn`
+  * `res/values-zh/strings.xml` → `9X9 学习`
 
 ## Audio Feedback
 

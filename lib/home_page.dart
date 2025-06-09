@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
                       List.generate(10, (_) => FixedColumnWidth(cellWidth)),
                     ),
                     children: [
-                      // Header
+                      // Header row
                       TableRow(
                         children: [
                           _buildHeaderCell('', cellWidth, cellHeight),
@@ -122,9 +122,7 @@ class _HomePageState extends State<HomePage> {
                               _buildDataCell(
                                 i,
                                 j,
-                                settings.language == 'Chinese'
-                                    ? '$i×$j=${i * j}'
-                                    : '$i × $j = ${i * j}',
+                                settings.language == 'Chinese' ? '$i×$j=${i * j}' : '$i × $j = ${i * j}',
                                 cellWidth,
                                 cellHeight,
                                 settings,
@@ -165,18 +163,21 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDataCell(
       int i, int j, String text, double width, double height, AppConfigs settings, BuildContext context) {
     return GestureDetector(
-      onTap: () => _playSound(i, j, settings, context), // Pass context for SnackBar
+      onTap: () => _playSound(i, j, settings, context),
       child: Container(
         width: width,
         height: height,
         color: Colors.white,
         alignment: Alignment.center,
-        child: Text(
-          text,
-          style: GoogleFonts.notoSans(
-            fontSize: min(width, height) * 0.25,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            settings.language == 'Chinese' ? '$i×$j=${i * j}' : '$i×$j=${i * j}', // Unified format
+            style: GoogleFonts.notoSans(
+              fontSize: min(width, height) * (settings.language == 'Chinese' ? 0.25 : 0.22),
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
         ),
       ),

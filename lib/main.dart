@@ -2,24 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_configs.dart';
-import 'quests_page.dart';
+import 'quiz_page.dart';
 import 'home_page.dart';
-import 'test_page.dart';
 import 'settings_page.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 允许所有四个方向
+  // Allow all four orientations
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  // Get initial language for first install
+  final String? savedLanguage = prefs.getString('language');
+  String initialLanguage;
+  if (savedLanguage == null) {
+    // First install: use system locale
+    final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    initialLanguage = systemLocale.languageCode.toLowerCase().startsWith('zh') ? 'Chinese' : 'English';
+  } else {
+    // Use saved language
+    initialLanguage = savedLanguage;
+  }
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => AppConfigs(),
+      create: (_) => AppConfigs(initialLanguage: initialLanguage),
       child: const MultiplicationTableApp(),
     ),
   );
@@ -31,7 +46,14 @@ class MultiplicationTableApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '九九乘法表',
+      title: '9X9 学习',
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child!,
+        );
+      },
       theme: ThemeData(
         primaryColor: Colors.blue[800],
         colorScheme: ColorScheme.fromSeed(
@@ -94,8 +116,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     _controller.value = 1;
     _pages = [
       const HomePage(),
-      const TestPage(),
-      const QuestsPage(),
+      const QuizPage(),
       const SettingsPage(),
     ];
   }
@@ -119,16 +140,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final settings = Provider.of<AppConfigs>(context);
     final isChinese = settings.language == 'Chinese';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
         title: FadeTransition(
           opacity: _controller,
-          child: Text(
-            isChinese ? '九九乘法表' : 'Multiplication Table',
-            style: GoogleFonts.notoSans(
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              isChinese ? '9X9 学习' : '9x9 Learn',
+              style: GoogleFonts.notoSans(
+                fontWeight: FontWeight.w600,
+                fontSize: isChinese ? 20 : 18,
+              ),
             ),
           ),
         ),
@@ -149,44 +174,41 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           child: _pages[_selectedIndex],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.table_chart),
-            activeIcon: Icon(Icons.table_chart, color: Theme.of(context).colorScheme.primary),
-            label: isChinese ? '首页' : 'Home',
-            tooltip: isChinese ? '首页' : 'Home',
+      bottomNavigationBar: Container(
+        height: 70,
+        child: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.table_chart),
+              activeIcon: Icon(Icons.table_chart, color: Theme.of(context).colorScheme.primary),
+              label: isChinese ? '首页' : 'Home',
+              tooltip: isChinese ? '首页' : 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.quiz),
+              activeIcon: Icon(Icons.quiz, color: Theme.of(context).colorScheme.primary),
+              label: isChinese ? '测试' : 'Quiz',
+              tooltip: isChinese ? '测试' : 'Quiz',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.settings),
+              activeIcon: Icon(Icons.settings, color: Theme.of(context).colorScheme.primary),
+              label: isChinese ? '设置' : 'Setup',
+              tooltip: isChinese ? '设置' : 'Setup',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          showUnselectedLabels: true,
+          selectedLabelStyle: GoogleFonts.notoSans(
+            fontWeight: FontWeight.w600,
+            fontSize: screenWidth < 360 ? 10 : (isChinese ? 12 : 11),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.quiz),
-            activeIcon: Icon(Icons.quiz, color: Theme.of(context).colorScheme.primary),
-            label: isChinese ? '测试' : 'Test',
-            tooltip: isChinese ? '测试' : 'Test',
+          unselectedLabelStyle: GoogleFonts.notoSans(
+            fontWeight: FontWeight.w400,
+            fontSize: screenWidth < 360 ? 10 : (isChinese ? 12 : 11),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.games),
-            activeIcon: Icon(Icons.games, color: Theme.of(context).colorScheme.primary),
-            label: isChinese ? '闯关' : 'Quests',
-            tooltip: isChinese ? '闯关' : 'Quests',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings),
-            activeIcon: Icon(Icons.settings, color: Theme.of(context).colorScheme.primary),
-            label: isChinese ? '设置' : 'Settings',
-            tooltip: isChinese ? '设置' : 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        showUnselectedLabels: true,
-        selectedLabelStyle: GoogleFonts.notoSans(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: GoogleFonts.notoSans(
-          fontWeight: FontWeight.w400,
-          fontSize: 12,
         ),
       ),
     );
